@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vectra AI — Algorithmic Trading Software</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #040a0e;
+    --bg2: #07111a;
+    --bg3: #0b1a26;
+    --teal: #00d4b4;
+    --teal-dim: #00a890;
+    --lime: #7eff00;
+    --lime-dim: #5cc200;
+    --white: #e8f4f0;
+    --muted: #4a7a6e;
+    --border: #0e2a22;
+    --red: #ff3e5a;
+    --card-bg: #081520;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* GRID BACKGROUND */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(0,212,180,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,180,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 5%;
+    height: 68px;
+    background: rgba(4,10,14,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+
+  .nav-logo svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .nav-brand {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    letter-spacing: 0.12em;
+    color: var(--white);
+  }
+
+  .nav-brand span { color: var(--teal); }
+
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--teal); }
+
+  .nav-cta {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: var(--teal);
+    color: var(--bg);
+    padding: 9px 22px;
+    border: none;
+    cursor: pointer;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    transition: background 0.2s, transform 0.15s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .nav-cta:hover { background: var(--lime); transform: translateY(-1px); }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 120px 5% 80px;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,212,180,0.12) 0%, transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .hero-glow-lime {
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(126,255,0,0.06) 0%, transparent 70%);
+    top: 30%;
+    right: 10%;
+    pointer-events: none;
+  }
+
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--teal);
+    border: 1px solid rgba(0,212,180,0.3);
+    padding: 6px 14px;
+    margin-bottom: 28px;
+    animation: fadeInDown 0.6s ease both;
+  }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--lime);
+    border-radius: 50%;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  .hero h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: clamp(3rem, 8vw, 7rem);
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+    animation: fadeInUp 0.7s ease 0.1s both;
+  }
+
+  .hero h1 .line1 { color: var(--white); display: block; }
+  .hero h1 .line2 { color: var(--teal); display: block; }
+  .hero h1 .line3 { 
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(0,212,180,0.4);
+    display: block;
+  }
+
+  .hero-sub {
+    font-size: 1.1rem;
+    font-weight: 300;
+    color: rgba(232,244,240,0.55);
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 44px;
+    animation: fadeInUp 0.7s ease 0.2s both;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeInUp 0.7s ease 0.3s both;
+    margin-bottom: 64px;
+  }
+
+  .btn-primary {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--teal), var(--lime));
+    color: var(--bg);
+    padding: 14px 36px;
+    border: none;
+    cursor: pointer;
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,212,180,0.3);
+  }
+
+  .btn-outline {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--teal);
+    padding: 13px 36px;
+    border: 1px solid rgba(0,212,180,0.4);
+    cursor: pointer;
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    transition: border-color 0.2s, background 0.2s;
+    text-decoration: none;
+  }
+
+  .btn-outline:hover {
+    border-color: var(--teal);
+    background: rgba(0,212,180,0.07);
+  }
+
+  /* TICKER */
+  .ticker-wrap {
+    width: 100%;
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 0;
+    background: rgba(7,17,26,0.6);
+    animation: fadeIn 1s ease 0.5s both;
+  }
+
+  .ticker-inner {
+    display: flex;
+    gap: 48px;
+    animation: ticker 30s linear infinite;
+    width: max-content;
+  }
+
+  .ticker-item {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+    color: var(--muted);
+  }
+
+  .ticker-item .sym { color: var(--white); font-weight: 700; }
+  .ticker-item .up { color: var(--teal); }
+  .ticker-item .dn { color: var(--red); }
+
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* STATS */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-left: 1px solid var(--border);
+    margin: 80px 5%;
+    animation: fadeInUp 0.8s ease 0.4s both;
+  }
+
+  .stat-item {
+    padding: 32px 24px;
+    border-right: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-item::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--teal), var(--lime));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .stat-item:hover::before { opacity: 1; }
+
+  .stat-num {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 2.4rem;
+    color: var(--teal);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-label {
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* SECTION COMMON */
+  section { position: relative; padding: 80px 5%; }
+
+  .section-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--teal);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-tag::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--teal);
+  }
+
+  .section-h2 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    line-height: 1.05;
+    margin-bottom: 16px;
+  }
+
+  .section-lead {
+    font-size: 1rem;
+    font-weight: 300;
+    color: rgba(232,244,240,0.55);
+    max-width: 540px;
+    line-height: 1.7;
+    margin-bottom: 56px;
+  }
+
+  /* PHASE BANNER */
+  .phase-banner {
+    background: rgba(126,255,0,0.06);
+    border: 1px solid rgba(126,255,0,0.2);
+    border-left: 3px solid var(--lime);
+    padding: 20px 28px;
+    margin: 0 5% 60px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .phase-icon {
+    font-size: 1.3rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .phase-text h3 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    color: var(--lime);
+    margin-bottom: 4px;
+  }
+
+  .phase-text p {
+    font-size: 0.88rem;
+    color: rgba(232,244,240,0.6);
+    line-height: 1.6;
+  }
+
+  /* PRODUCTS */
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    margin-bottom: 2px;
+  }
+
+  .product-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 36px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
+    cursor: pointer;
+  }
+
+  .product-card:hover {
+    border-color: rgba(0,212,180,0.4);
+    transform: translateY(-4px);
+  }
+
+  .product-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 0;
+    background: linear-gradient(180deg, transparent, rgba(0,212,180,0.05));
+    transition: height 0.3s;
+  }
+
+  .product-card:hover::after { height: 60%; }
+
+  .card-status {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    padding: 4px 10px;
+    margin-bottom: 24px;
+    display: inline-block;
+  }
+
+  .status-live {
+    background: rgba(0,212,180,0.1);
+    border: 1px solid rgba(0,212,180,0.3);
+    color: var(--teal);
+  }
+
+  .status-coming {
+    background: rgba(126,255,0,0.07);
+    border: 1px solid rgba(126,255,0,0.25);
+    color: var(--lime);
+  }
+
+  .card-num {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 4rem;
+    color: rgba(0,212,180,0.08);
+    line-height: 1;
+    position: absolute;
+    top: 20px;
+    right: 28px;
+  }
+
+  .card-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    color: var(--white);
+  }
+
+  .card-version {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--teal);
+    margin-bottom: 16px;
+    letter-spacing: 0.1em;
+  }
+
+  .card-desc {
+    font-size: 0.88rem;
+    font-weight: 300;
+    color: rgba(232,244,240,0.55);
+    line-height: 1.65;
+    margin-bottom: 24px;
+  }
+
+  .card-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .card-features li {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: rgba(232,244,240,0.5);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-features li::before {
+    content: '›';
+    color: var(--teal);
+    font-size: 1rem;
+  }
+
+  /* SCREENSHOT SECTION */
+  .screenshots {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ss-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ss-tab {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 14px 28px;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.2s, border-color 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+
+  .ss-tab.active {
+    color: var(--teal);
+    border-bottom-color: var(--teal);
+  }
+
+  .ss-panel { display: none; }
+  .ss-panel.active { display: block; }
+
+  .ss-frame {
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .ss-frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(0,212,180,0.15);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .ss-frame img {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: brightness(1.05) contrast(1.02);
+  }
+
+  .ss-caption {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* PRICING */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .price-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 36px 28px;
+    position: relative;
+    transition: border-color 0.3s;
+  }
+
+  .price-card.featured {
+    border-color: rgba(0,212,180,0.4);
+    background: rgba(0,212,180,0.04);
+  }
+
+  .price-card.featured::before {
+    content: 'MOST POPULAR';
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    background: var(--teal);
+    color: var(--bg);
+    padding: 4px 14px;
+    white-space: nowrap;
+  }
+
+  .price-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .price-val {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 3rem;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .price-val span {
+    font-size: 1.2rem;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .price-period {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 28px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .price-divider {
+    height: 1px;
+    background: var(--border);
+    margin-bottom: 24px;
+  }
+
+  .price-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .price-features li {
+    font-size: 0.88rem;
+    color: rgba(232,244,240,0.6);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.5;
+  }
+
+  .price-features li .chk { color: var(--teal); flex-shrink: 0; }
+  .price-features li .x { color: var(--red); flex-shrink: 0; }
+
+  .price-note {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-top: 16px;
+  }
+
+  /* WAITLIST */
+  .waitlist {
+    background: linear-gradient(135deg, rgba(0,212,180,0.06) 0%, rgba(126,255,0,0.03) 100%);
+    border-top: 1px solid rgba(0,212,180,0.15);
+    border-bottom: 1px solid rgba(0,212,180,0.15);
+    text-align: center;
+    padding: 100px 5%;
+  }
+
+  .waitlist-form {
+    display: flex;
+    gap: 0;
+    max-width: 480px;
+    margin: 0 auto;
+    margin-top: 36px;
+  }
+
+  .waitlist-input {
+    flex: 1;
+    background: rgba(7,17,26,0.8);
+    border: 1px solid rgba(0,212,180,0.3);
+    border-right: none;
+    color: var(--white);
+    padding: 14px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .waitlist-input:focus { border-color: var(--teal); }
+  .waitlist-input::placeholder { color: var(--muted); }
+
+  .waitlist-btn {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: var(--teal);
+    color: var(--bg);
+    padding: 14px 28px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+
+  .waitlist-btn:hover { background: var(--lime); }
+
+  .waitlist-note {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 14px;
+  }
+
+  /* HOW IT WORKS */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+  }
+
+  .step {
+    padding: 40px 28px;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+
+  .step:last-child { border-right: none; }
+
+  .step-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--teal);
+    letter-spacing: 0.2em;
+    margin-bottom: 20px;
+  }
+
+  .step-icon {
+    font-size: 1.8rem;
+    margin-bottom: 16px;
+  }
+
+  .step-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    color: var(--white);
+  }
+
+  .step-desc {
+    font-size: 0.84rem;
+    font-weight: 300;
+    color: rgba(232,244,240,0.5);
+    line-height: 1.65;
+  }
+
+  /* ROADMAP */
+  .roadmap {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--border);
+  }
+
+  .rm-item {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .rm-item:last-child { border-bottom: none; }
+
+  .rm-phase {
+    padding: 28px 24px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .rm-phase-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+  }
+
+  .rm-phase-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+  }
+
+  .rm-phase.done .rm-phase-name { color: var(--teal); }
+  .rm-phase.active .rm-phase-name { color: var(--lime); }
+  .rm-phase.upcoming .rm-phase-name { color: var(--muted); }
+
+  .rm-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 4px;
+  }
+
+  .rm-phase.done .rm-dot { background: var(--teal); }
+  .rm-phase.active .rm-dot { background: var(--lime); animation: pulse 1.5s ease infinite; }
+  .rm-phase.upcoming .rm-dot { background: var(--muted); opacity: 0.4; }
+
+  .rm-content {
+    padding: 28px 32px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .rm-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    padding: 5px 12px;
+    border-radius: 2px;
+  }
+
+  .rm-phase.done ~ * .rm-tag, .rm-tag.done-tag { 
+    background: rgba(0,212,180,0.1);
+    border: 1px solid rgba(0,212,180,0.25);
+    color: var(--teal);
+  }
+
+  .rm-tag.active-tag {
+    background: rgba(126,255,0,0.08);
+    border: 1px solid rgba(126,255,0,0.25);
+    color: var(--lime);
+  }
+
+  .rm-tag.coming-tag {
+    background: rgba(74,122,110,0.1);
+    border: 1px solid rgba(74,122,110,0.2);
+    color: var(--muted);
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 60px 5% 40px;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 40px;
+  }
+
+  .footer-brand {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: 0.12em;
+    margin-bottom: 10px;
+  }
+
+  .footer-brand span { color: var(--teal); }
+
+  .footer-tagline {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 260px;
+  }
+
+  .footer-col h4 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .footer-col ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .footer-col a {
+    font-size: 0.85rem;
+    color: rgba(232,244,240,0.45);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-col a:hover { color: var(--teal); }
+
+  .footer-bottom {
+    padding: 20px 5%;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-bottom p {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* SCROLL REVEAL */
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* SUCCESS MESSAGE */
+  .success-msg {
+    display: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--teal);
+    margin-top: 16px;
+    padding: 12px 20px;
+    border: 1px solid rgba(0,212,180,0.3);
+    background: rgba(0,212,180,0.05);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    .products-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .steps { grid-template-columns: repeat(2, 1fr); }
+    .step { border-bottom: 1px solid var(--border); }
+    .nav-links { display: none; }
+    footer { grid-template-columns: 1fr; }
+    .rm-item { grid-template-columns: 1fr; }
+    .rm-phase { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+
+  @media (max-width: 600px) {
+    .stats-bar { grid-template-columns: 1fr; }
+    .steps { grid-template-columns: 1fr; }
+    .waitlist-form { flex-direction: column; }
+    .waitlist-input { border-right: 1px solid rgba(0,212,180,0.3); }
+    .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 12 L14 22 L18 10 L26 26" stroke="url(#g1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="14" cy="22" r="2" fill="#00d4b4"/>
+      <path d="M22 18 L32 8" stroke="#7eff00" stroke-width="2" stroke-linecap="round"/>
+      <path d="M29 8 L32 8 L32 11" stroke="#7eff00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <defs>
+        <linearGradient id="g1" x1="4" y1="12" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#00a890"/>
+          <stop offset="1" stop-color="#00d4b4"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <span class="nav-brand">VECTRA <span>AI</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#products">Software</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul>
+  <a href="#waitlist" class="nav-cta">Join Waitlist</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow-lime"></div>
+
+  <div class="live-badge">
+    <span class="live-dot"></span>
+    PHASE 1 — PAPER TRADING ACTIVE · SINCE APR 12
+  </div>
+
+  <h1>
+    <span class="line1">ALGORITHMIC</span>
+    <span class="line2">TRADING</span>
+    <span class="line3">SOFTWARE</span>
+  </h1>
+
+  <p class="hero-sub">
+    AI-powered bots for crypto futures, DCA strategies, and stock options — built and battle-tested before a single real dollar is risked.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#products" class="btn-primary">Explore Software</a>
+    <a href="#waitlist" class="btn-outline">Get Early Access</a>
+  </div>
+
+  <!-- Ticker -->
+  <div class="ticker-wrap">
+    <div class="ticker-inner" id="ticker">
+      <div class="ticker-item"><span class="sym">BTC</span> $71,107 <span class="up">+0.10%</span></div>
+      <div class="ticker-item"><span class="sym">ETH</span> $2,197 <span class="dn">-0.49%</span></div>
+      <div class="ticker-item"><span class="sym">XRP</span> $1.3269 <span class="dn">-0.003%</span></div>
+      <div class="ticker-item"><span class="sym">SOL</span> $82.08 <span class="up">+0.036%</span></div>
+      <div class="ticker-item"><span class="sym">XMR</span> $341.58 <span class="dn">-0.214%</span></div>
+      <div class="ticker-item"><span class="sym">RAVE</span> $6.037 <span class="up">+0.311%</span></div>
+      <div class="ticker-item"><span class="sym">AAPL</span> $186.40 <span class="up">+1.2%</span></div>
+      <div class="ticker-item"><span class="sym">TSLA</span> $177.50 <span class="dn">-0.8%</span></div>
+      <div class="ticker-item"><span class="sym">AMZN</span> $183.20 <span class="up">+0.5%</span></div>
+      <!-- duplicated for seamless loop -->
+      <div class="ticker-item"><span class="sym">BTC</span> $71,107 <span class="up">+0.10%</span></div>
+      <div class="ticker-item"><span class="sym">ETH</span> $2,197 <span class="dn">-0.49%</span></div>
+      <div class="ticker-item"><span class="sym">XRP</span> $1.3269 <span class="dn">-0.003%</span></div>
+      <div class="ticker-item"><span class="sym">SOL</span> $82.08 <span class="up">+0.036%</span></div>
+      <div class="ticker-item"><span class="sym">XMR</span> $341.58 <span class="dn">-0.214%</span></div>
+      <div class="ticker-item"><span class="sym">RAVE</span> $6.037 <span class="up">+0.311%</span></div>
+      <div class="ticker-item"><span class="sym">AAPL</span> $186.40 <span class="up">+1.2%</span></div>
+      <div class="ticker-item"><span class="sym">TSLA</span> $177.50 <span class="dn">-0.8%</span></div>
+      <div class="ticker-item"><span class="sym">AMZN</span> $183.20 <span class="up">+0.5%</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar reveal">
+  <div class="stat-item">
+    <div class="stat-num">3</div>
+    <div class="stat-label">Live Bots in Paper Testing</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">5+</div>
+    <div class="stat-label">Markets Monitored 24/7</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">7</div>
+    <div class="stat-label">Signal Indicators per Pair</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">∞</div>
+    <div class="stat-label">Automated. No Emotion.</div>
+  </div>
+</div>
+
+<!-- PHASE BANNER -->
+<div class="phase-banner reveal">
+  <div class="phase-icon">🧪</div>
+  <div class="phase-text">
+    <h3>PHASE 1 — PAPER TRADING MODE</h3>
+    <p>All bots are currently operating in simulated (paper) trading mode. Real capital is not at risk. We are collecting performance data, refining signals, and stress-testing risk controls before enabling live exchange connections. Join the waitlist to be notified when live trading access opens — and lock in early-adopter pricing.</p>
+  </div>
+</div>
+
+<!-- PRODUCTS -->
+<section id="products">
+  <div class="section-tag">Software Suite</div>
+  <h2 class="section-h2">Three Bots.<br>One Unified Edge.</h2>
+  <p class="section-lead">Each bot targets a distinct market and strategy, powered by the same Vectra AI signal engine — multi-indicator, multi-timeframe, fully automated.</p>
+
+  <div class="products-grid reveal">
+    <!-- Crypto Futures -->
+    <div class="product-card">
+      <div class="card-num">01</div>
+      <span class="card-status status-live">● PAPER LIVE</span>
+      <div class="card-name">CRYPTO FUTURES</div>
+      <div class="card-version">V1 — POWERED BY VECTRA AI</div>
+      <p class="card-desc">Automated long/short futures trading across top crypto pairs. Reads RSI, MACD, Bollinger Bands, VWAP, sentiment, order book depth, and funding rates to time entries with precision.</p>
+      <ul class="card-features">
+        <li>Multi-pair: BTC, ETH, SOL, XMR, RAVE</li>
+        <li>Adjustable leverage, position size & stop-loss</li>
+        <li>Real-time balance curve dashboard</li>
+        <li>CSV trade log export</li>
+        <li>Risk control overrides via dashboard</li>
+      </ul>
+    </div>
+
+    <!-- Crypto DCA -->
+    <div class="product-card">
+      <div class="card-num">02</div>
+      <span class="card-status status-live">● PAPER LIVE</span>
+      <div class="card-name">CRYPTO DCA</div>
+      <div class="card-version">V1 — POWERED BY VECTRA AI</div>
+      <p class="card-desc">Intelligent dollar-cost averaging that buys dips strategically, not blindly. Uses RSI gates, Fear & Greed index, VWAP, and volume filters to deploy capital only when conditions are favorable.</p>
+      <ul class="card-features">
+        <li>Safety order ladder with configurable steps</li>
+        <li>Trailing take-profit with configurable distance</li>
+        <li>EMA200 trend band filter</li>
+        <li>F&G and volume gates to avoid bad entries</li>
+        <li>Per-pair max capital limits</li>
+      </ul>
+    </div>
+
+    <!-- Stock Options -->
+    <div class="product-card">
+      <div class="card-num">03</div>
+      <span class="card-status status-live">● PAPER LIVE</span>
+      <div class="card-name">STOCK OPTIONS</div>
+      <div class="card-version">V1 — CALENDAR SPREAD ENGINE</div>
+      <p class="card-desc">Automated calendar spread trading on high-IV stocks. Sells near-term options, buys longer-dated ones on the same strike — capturing theta decay and IV crush with defined risk.</p>
+      <ul class="card-features">
+        <li>Auto-scans AAPL, AMZN, TSLA & watchlist</li>
+        <li>Payoff diagram visualization per spread</li>
+        <li>IV rank filter for premium-rich entries</li>
+        <li>DTE exit, profit target & stop-loss controls</li>
+        <li>Delta & position size caps</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Coming Soon Row -->
+  <div class="products-grid reveal" style="margin-top:2px;">
+    <div class="product-card" style="opacity:0.65;">
+      <div class="card-num">04</div>
+      <span class="card-status status-coming">⏳ COMING SOON</span>
+      <div class="card-name">STOCK FUTURES</div>
+      <div class="card-version">V1 — IN DEVELOPMENT</div>
+      <p class="card-desc">Directional futures trading on equity indices and individual stock futures — bringing the Vectra signal engine to traditional markets.</p>
+      <ul class="card-features">
+        <li>ES, NQ, and individual stock futures</li>
+        <li>Session-aware trading windows</li>
+        <li>Macro signal integration</li>
+      </ul>
+    </div>
+
+    <div class="product-card" style="opacity:0.65;">
+      <div class="card-num">05</div>
+      <span class="card-status status-coming">⏳ COMING SOON</span>
+      <div class="card-name">STOCK DCA</div>
+      <div class="card-version">V1 — IN DEVELOPMENT</div>
+      <p class="card-desc">Long-term equity accumulation via systematic dip-buying — the DCA engine adapted for stocks, ETFs, and sector plays.</p>
+      <ul class="card-features">
+        <li>Sector rotation awareness</li>
+        <li>Earnings blackout periods</li>
+        <li>Dividend-reinvestment mode</li>
+      </ul>
+    </div>
+
+    <div class="product-card" style="border-style:dashed; opacity:0.35; display:flex; align-items:center; justify-content:center; min-height:200px;">
+      <div style="text-align:center;">
+        <div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.15em;">MORE COMING</div>
+        <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.2rem;color:var(--muted);margin-top:8px;">Future Strategies</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENSHOTS -->
+<section class="screenshots" id="screenshots">
+  <div class="section-tag">Live Dashboards</div>
+  <h2 class="section-h2">See It In Action.</h2>
+  <p class="section-lead">Real-time dashboards for every bot — trade logs, signal readings, balance curves, and one-click risk controls.</p>
+
+  <div class="ss-tabs">
+    <button class="ss-tab active" onclick="showTab('futures')">Crypto Futures</button>
+    <button class="ss-tab" onclick="showTab('dca')">Crypto DCA</button>
+    <button class="ss-tab" onclick="showTab('options')">Stock Options</button>
+  </div>
+
+  <div class="ss-panel active" id="tab-futures">
+    <div class="ss-frame">
+      <img src="1776047113898_image.png" alt="Crypto Futures V1 Dashboard — Vectra AI" loading="lazy">
+    </div>
+    <p class="ss-caption">// CRYPTO FUTURES V1 · Balance: $587 from $500 start · 19 trades · Win rate 36.8% · Profit factor 6.99</p>
+  </div>
+
+  <div class="ss-panel" id="tab-dca">
+    <div class="ss-frame">
+      <img src="1776047135171_image.png" alt="Crypto DCA V1 Dashboard — Vectra AI" loading="lazy">
+    </div>
+    <p class="ss-caption">// CRYPTO DCA V1 · $165 invested across 5 open DCA positions · Waiting for first closed cycle</p>
+  </div>
+
+  <div class="ss-panel" id="tab-options">
+    <div class="ss-frame">
+      <img src="1776047164570_image.png" alt="Stock Options V1 Dashboard — Vectra AI" loading="lazy">
+    </div>
+    <p class="ss-caption">// STOCK OPTIONS V1 · Calendar Spread Engine · 4 open spreads on AAPL, AMZN, TSLA · $10,000 balance</p>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-tag">Process</div>
+  <h2 class="section-h2">How Vectra AI Works.</h2>
+  <p class="section-lead">From signal detection to execution — fully automated, fully transparent.</p>
+
+  <div class="steps reveal">
+    <div class="step">
+      <div class="step-num">// 01</div>
+      <div class="step-icon">📡</div>
+      <div class="step-title">Signal Detection</div>
+      <p class="step-desc">Every few minutes, the engine scans your configured pairs — reading RSI, MACD, BB, VWAP, sentiment scores, order book imbalance, and funding rates simultaneously.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">// 02</div>
+      <div class="step-icon">🧠</div>
+      <div class="step-title">AI Scoring</div>
+      <p class="step-desc">Signals are weighted and scored. Only when enough indicators align in the same direction — above your minimum signal threshold — does the system consider an entry.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">// 03</div>
+      <div class="step-icon">⚡</div>
+      <div class="step-title">Execution</div>
+      <p class="step-desc">Orders are placed instantly at configured position size and leverage. Stop-loss and take-profit levels are set automatically. No hesitation, no second-guessing, no emotion.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">// 04</div>
+      <div class="step-icon">📊</div>
+      <div class="step-title">Monitoring & Control</div>
+      <p class="step-desc">Your dashboard updates in real time. Adjust risk controls, review the trade log, export CSVs, or override settings at any time — without stopping the bot.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap">
+  <div class="section-tag">Roadmap</div>
+  <h2 class="section-h2">The Path to Live Trading.</h2>
+  <p class="section-lead">We're not rushing. Every phase must prove itself before the next begins.</p>
+
+  <div class="roadmap reveal">
+    <div class="rm-item">
+      <div class="rm-phase done">
+        <div class="rm-phase-label">PHASE 0</div>
+        <div class="rm-phase-name">BUILD</div>
+        <div class="rm-dot"></div>
+      </div>
+      <div class="rm-content">
+        <span class="rm-tag done-tag">Crypto Futures V1</span>
+        <span class="rm-tag done-tag">Crypto DCA V1</span>
+        <span class="rm-tag done-tag">Stock Options V1</span>
+        <span class="rm-tag done-tag">Dashboard UI</span>
+        <span class="rm-tag done-tag">Risk Controls</span>
+      </div>
+    </div>
+    <div class="rm-item">
+      <div class="rm-phase active">
+        <div class="rm-phase-label">PHASE 1 — NOW</div>
+        <div class="rm-phase-name">PAPER TRADING</div>
+        <div class="rm-dot"></div>
+      </div>
+      <div class="rm-content">
+        <span class="rm-tag active-tag">Live Paper Execution</span>
+        <span class="rm-tag active-tag">Data Collection</span>
+        <span class="rm-tag active-tag">Performance Validation</span>
+        <span class="rm-tag active-tag">Signal Tuning</span>
+      </div>
+    </div>
+    <div class="rm-item">
+      <div class="rm-phase upcoming">
+        <div class="rm-phase-label">PHASE 2</div>
+        <div class="rm-phase-name">BETA ACCESS</div>
+        <div class="rm-dot"></div>
+      </div>
+      <div class="rm-content">
+        <span class="rm-tag coming-tag">Stock Futures V1</span>
+        <span class="rm-tag coming-tag">Stock DCA V1</span>
+        <span class="rm-tag coming-tag">Waitlist Invites</span>
+        <span class="rm-tag coming-tag">Beta Pricing</span>
+      </div>
+    </div>
+    <div class="rm-item">
+      <div class="rm-phase upcoming">
+        <div class="rm-phase-label">PHASE 3</div>
+        <div class="rm-phase-name">LIVE TRADING</div>
+        <div class="rm-dot"></div>
+      </div>
+      <div class="rm-content">
+        <span class="rm-tag coming-tag">Exchange API Connections</span>
+        <span class="rm-tag coming-tag">Real Capital Trading</span>
+        <span class="rm-tag coming-tag">Subscription Launch</span>
+        <span class="rm-tag coming-tag">Public Release</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-tag">Pricing</div>
+  <h2 class="section-h2">Early-Adopter Pricing.<br>Lock It In Now.</h2>
+  <p class="section-lead">Waitlist members get grandfathered into launch pricing. Prices shown are estimates — final pricing confirmed at Phase 3 launch.</p>
+
+  <div class="pricing-grid reveal">
+    <!-- Starter -->
+    <div class="price-card">
+      <div class="price-name">Starter</div>
+      <div class="price-val">$29<span>/mo</span></div>
+      <div class="price-period">estimated · billed monthly</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li><span class="chk">✓</span> 1 Bot of your choice</li>
+        <li><span class="chk">✓</span> Up to 3 active pairs</li>
+        <li><span class="chk">✓</span> Real-time dashboard</li>
+        <li><span class="chk">✓</span> Trade log & CSV export</li>
+        <li><span class="x">✗</span> Multi-bot access</li>
+        <li><span class="x">✗</span> Priority signal updates</li>
+      </ul>
+      <a href="#waitlist" class="btn-outline" style="display:block;text-align:center;">Join Waitlist</a>
+      <p class="price-note">* Final pricing determined after Phase 1 data validation.</p>
+    </div>
+
+    <!-- Pro -->
+    <div class="price-card featured">
+      <div class="price-name">Pro</div>
+      <div class="price-val">$79<span>/mo</span></div>
+      <div class="price-period">estimated · billed monthly</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li><span class="chk">✓</span> All 3 current bots</li>
+        <li><span class="chk">✓</span> Unlimited pairs</li>
+        <li><span class="chk">✓</span> Advanced risk controls</li>
+        <li><span class="chk">✓</span> Trade log & CSV export</li>
+        <li><span class="chk">✓</span> Priority signal updates</li>
+        <li><span class="chk">✓</span> New bots as they launch</li>
+      </ul>
+      <a href="#waitlist" class="btn-primary" style="display:block;text-align:center;">Join Waitlist</a>
+      <p class="price-note">* Waitlist members lock in this rate permanently.</p>
+    </div>
+
+    <!-- Lifetime -->
+    <div class="price-card">
+      <div class="price-name">Lifetime</div>
+      <div class="price-val">$499<span> once</span></div>
+      <div class="price-period">estimated · pay once, own forever</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li><span class="chk">✓</span> All current & future bots</li>
+        <li><span class="chk">✓</span> Unlimited everything</li>
+        <li><span class="chk">✓</span> Lifetime updates included</li>
+        <li><span class="chk">✓</span> Direct founder support</li>
+        <li><span class="chk">✓</span> Input on new features</li>
+        <li><span class="chk">✓</span> Limited — 50 slots only</li>
+      </ul>
+      <a href="#waitlist" class="btn-outline" style="display:block;text-align:center;">Reserve a Slot</a>
+      <p class="price-note">* Lifetime slots are limited. Waitlist members get first access.</p>
+    </div>
+  </div>
+</section>
+
+<!-- WAITLIST -->
+<section class="waitlist" id="waitlist">
+  <div class="section-tag" style="justify-content:center;">Early Access</div>
+  <h2 class="section-h2" style="font-size:clamp(2rem,5vw,4rem);">Get In Before<br>The Doors Open.</h2>
+  <p class="section-lead" style="margin:16px auto 0;text-align:center;">Join the waitlist to get notified at Phase 2 beta launch, lock in early-adopter pricing, and be first in line when live trading goes live.</p>
+
+  <div class="waitlist-form">
+    <input class="waitlist-input" type="email" id="emailInput" placeholder="your@email.com">
+    <button class="waitlist-btn" onclick="handleWaitlist()">NOTIFY ME</button>
+  </div>
+  <div id="successMsg" class="success-msg">
+    ✓ You're on the list. We'll reach out when beta access opens.
+  </div>
+  <p class="waitlist-note">No spam. No credit card. Just an email when it's ready.</p>
+</section>
+
+<!-- HOW DELIVERY WORKS -->
+<section>
+  <div class="section-tag">Delivery</div>
+  <h2 class="section-h2">How It Gets to You.</h2>
+  <p class="section-lead">When Phase 3 launches, here's exactly how you'll access your software.</p>
+
+  <div class="steps reveal" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="step">
+      <div class="step-num">// 01</div>
+      <div class="step-icon">💳</div>
+      <div class="step-title">Subscribe or Purchase</div>
+      <p class="step-desc">Pay via secure checkout (Stripe). Monthly subscriptions can be cancelled anytime. Lifetime access is a one-time purchase — no recurring charges.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">// 02</div>
+      <div class="step-icon">📦</div>
+      <div class="step-title">Download Your Bot</div>
+      <p class="step-desc">Receive a download link for the bot package — a self-contained Python application. Set up on your own machine or a cloud VPS so it runs 24/7.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">// 03</div>
+      <div class="step-icon">🔗</div>
+      <div class="step-title">Connect Your Exchange</div>
+      <p class="step-desc">Add your exchange API keys (read-only or trade permissions — your choice). The bot connects and begins trading. Your funds stay on the exchange — we never touch them.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-brand">VECTRA <span>AI</span></div>
+    <p class="footer-tagline">Algorithmic trading software engineered for discipline, precision, and edge — without the emotion.</p>
+  </div>
+  <div class="footer-col">
+    <h4>Software</h4>
+    <ul>
+      <li><a href="#products">Crypto Futures V1</a></li>
+      <li><a href="#products">Crypto DCA V1</a></li>
+      <li><a href="#products">Stock Options V1</a></li>
+      <li><a href="#products">Stock Futures (Coming)</a></li>
+      <li><a href="#products">Stock DCA (Coming)</a></li>
+    </ul>
+  </div>
+  <div class="footer-col">
+    <h4>Company</h4>
+    <ul>
+      <li><a href="#roadmap">Roadmap</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#waitlist">Join Waitlist</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+  </div>
+</footer>
+
+<div class="footer-bottom">
+  <p>© 2025 Vectra AI. All rights reserved.</p>
+  <p>⚠ Trading involves risk. Past paper performance does not guarantee future real results.</p>
+</div>
+
+<script>
+  // Tab switching
+  function showTab(name) {
+    document.querySelectorAll('.ss-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.ss-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  // Waitlist
+  function handleWaitlist() {
+    const email = document.getElementById('emailInput').value;
+    if (!email || !email.includes('@')) {
+      document.getElementById('emailInput').style.borderColor = '#ff3e5a';
+      return;
+    }
+    document.getElementById('emailInput').style.borderColor = 'rgba(0,212,180,0.3)';
+    document.getElementById('successMsg').style.display = 'block';
+    document.getElementById('emailInput').value = '';
+    // In production: POST to your email capture backend / Mailchimp / ConvertKit
+  }
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(r => observer.observe(r));
+
+  // Nav scroll effect
+  window.addEventListener('scroll', () => {
+    document.querySelector('nav').style.borderBottomColor = 
+      window.scrollY > 50 ? 'rgba(0,212,180,0.15)' : 'var(--border)';
+  });
+</script>
+
+</body>
+</html>
