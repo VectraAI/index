@@ -79,20 +79,16 @@
     text-decoration: none;
   }
 
-  .nav-logo svg {
-    width: 36px;
-    height: 36px;
+  .nav-logo img {
+    height: 42px;
+    width: auto;
+    display: block;
   }
 
-  .nav-brand {
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 700;
-    font-size: 1.3rem;
-    letter-spacing: 0.12em;
-    color: var(--white);
+  .hero-logo {
+    display: block;
+    filter: drop-shadow(0 0 20px rgba(0,212,180,0.5)) drop-shadow(0 0 60px rgba(126,255,0,0.2)) brightness(1.05);
   }
-
-  .nav-brand span { color: var(--teal); }
 
   .nav-links {
     display: flex;
@@ -1040,19 +1036,7 @@
 <!-- NAV -->
 <nav>
   <a class="nav-logo" href="#">
-    <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M4 12 L14 22 L18 10 L26 26" stroke="url(#g1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="14" cy="22" r="2" fill="#00d4b4"/>
-      <path d="M22 18 L32 8" stroke="#7eff00" stroke-width="2" stroke-linecap="round"/>
-      <path d="M29 8 L32 8 L32 11" stroke="#7eff00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <defs>
-        <linearGradient id="g1" x1="4" y1="12" x2="26" y2="26" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#00a890"/>
-          <stop offset="1" stop-color="#00d4b4"/>
-        </linearGradient>
-      </defs>
-    </svg>
-    <span class="nav-brand">VECTRA <span>AI</span></span>
+    <img src="vectra_logo.png" alt="Vectra AI">
   </a>
   <ul class="nav-links">
     <li><a href="#products">Software</a></li>
@@ -1067,6 +1051,27 @@
 <section class="hero">
   <div class="hero-glow"></div>
   <div class="hero-glow-lime"></div>
+
+  <div style="
+    position: relative;
+    margin-bottom: 36px;
+    animation: fadeInDown 0.7s ease both;
+    display: inline-block;
+  ">
+    <!-- soft white glow so dark VECTRA text is legible on dark bg -->
+    <div style="
+      position: absolute;
+      inset: -30% -20%;
+      background: radial-gradient(ellipse at 50% 55%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.07) 40%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    "></div>
+    <img src="vectra_logo.png" alt="Vectra AI" class="hero-logo" style="
+      width: clamp(200px, 28vw, 340px);
+      position: relative;
+      z-index: 1;
+    ">
+  </div>
 
   <div class="live-badge">
     <span class="live-dot"></span>
